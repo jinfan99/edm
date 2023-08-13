@@ -192,9 +192,12 @@ def main(**kwargs):
         pt_files = glob(os.path.join(opts.resume, 'training-state-*.pt'))
         pt_files.sort()
         latest_file = pt_files[-1]
+        print(pt_files)
+        print(latest_file)
 
         match = re.fullmatch(r'training-state-(\d+).pt', os.path.basename(latest_file))
         if not match or not os.path.isfile(latest_file):
+            print(latest_file)
             raise click.ClickException('--resume must point to training-state-*.pt from a previous training run')
         c.resume_pkl = os.path.join(os.path.dirname(latest_file), f'network-snapshot-{match.group(1)}.pkl')
         c.resume_kimg = int(match.group(1))
