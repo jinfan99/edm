@@ -77,11 +77,7 @@ def parse_int_list(s):
 @click.option('--transfer',      help='Transfer learning from network pickle', metavar='PKL|URL',   type=str)
 @click.option('--resume',        help='Resume from previous training state', metavar='PT',          type=str)
 @click.option('-n', '--dry-run', help='Print training options and exit',                            is_flag=True)
-<<<<<<< HEAD
 @click.option('--resumedir',        help='Resume from previous training directory', metavar='PT',          type=str)
-=======
-# @click.option('--resumedir',        help='Resume from previous training directory', metavar='PT',          type=str)
->>>>>>> 0b69fd2a05a62e1d2e73afcc3690cd97ee710768
 
 def main(**kwargs):
     """Train diffusion-based generative model using the techniques described in the
@@ -205,7 +201,6 @@ def main(**kwargs):
             raise click.ClickException('--resume must point to training-state-*.pt from a previous training run')
         c.resume_pkl = os.path.join(os.path.dirname(latest_file), f'network-snapshot-{match.group(1)}.pkl')
         c.resume_kimg = int(match.group(1))
-<<<<<<< HEAD
         c.resume_state_dump = opts.resume
     elif opts.resumedir is not None:
         pt_files = glob(os.path.join(opts.resumedir, 'training-state-*.pt'))
@@ -218,11 +213,6 @@ def main(**kwargs):
         c.resume_pkl = os.path.join(os.path.dirname(latest_file), f'network-snapshot-{match.group(1)}.pkl')
         c.resume_kimg = int(match.group(1))
         c.resume_state_dump = latest_file
-=======
-        c.resume_state_dump = latest_file
-
-        
->>>>>>> 0b69fd2a05a62e1d2e73afcc3690cd97ee710768
 
     # Description string.
     cond_str = 'cond' if c.dataset_kwargs.use_labels else 'uncond'
