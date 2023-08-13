@@ -77,7 +77,7 @@ def parse_int_list(s):
 @click.option('--transfer',      help='Transfer learning from network pickle', metavar='PKL|URL',   type=str)
 @click.option('--resume',        help='Resume from previous training state', metavar='PT',          type=str)
 @click.option('-n', '--dry-run', help='Print training options and exit',                            is_flag=True)
-@click.option('--resumedir',        help='Resume from previous training directory', metavar='PT',          type=str)
+# @click.option('--resumedir',        help='Resume from previous training directory', metavar='PT',          type=str)
 
 def main(**kwargs):
     """Train diffusion-based generative model using the techniques described in the
@@ -169,15 +169,27 @@ def main(**kwargs):
             raise click.ClickException('--transfer and --resume cannot be specified at the same time')
         c.resume_pkl = opts.transfer
         c.ema_rampup_ratio = None
+    # elif opts.resume is not None:
+    #     match = re.fullmatch(r'training-state-(\d+).pt', os.path.basename(opts.resume))
+    #     if not match or not os.path.isfile(opts.resume):
+    #         raise click.ClickException('--resume must point to training-state-*.pt from a previous training run')
+    #     c.resume_pkl = os.path.join(os.path.dirname(opts.resume), f'network-snapshot-{match.group(1)}.pkl')
+    #     c.resume_kimg = int(match.group(1))
+    #     c.resume_state_dump = opts.resume
+    # elif opts.resumedir is not None:
+    #     pt_files = glob(os.path.join(opts.resumedir, 'training-state-*.pt'))
+    #     pt_files.sort()
+    #     latest_file = pt_files[-1]
+
+    #     match = re.fullmatch(r'training-state-(\d+).pt', os.path.basename(latest_file))
+    #     if not match or not os.path.isfile(latest_file):
+    #         raise click.ClickException('--resume must point to training-state-*.pt from a previous training run')
+    #     c.resume_pkl = os.path.join(os.path.dirname(latest_file), f'network-snapshot-{match.group(1)}.pkl')
+    #     c.resume_kimg = int(match.group(1))
+    #     c.resume_state_dump = latest_file
+
     elif opts.resume is not None:
-        match = re.fullmatch(r'training-state-(\d+).pt', os.path.basename(opts.resume))
-        if not match or not os.path.isfile(opts.resume):
-            raise click.ClickException('--resume must point to training-state-*.pt from a previous training run')
-        c.resume_pkl = os.path.join(os.path.dirname(opts.resume), f'network-snapshot-{match.group(1)}.pkl')
-        c.resume_kimg = int(match.group(1))
-        c.resume_state_dump = opts.resume
-    elif opts.resumedir is not None:
-        pt_files = glob(os.path.join(opts.resumedir, 'training-state-*.pt'))
+        pt_files = glob(os.path.join(opts.resume, 'training-state-*.pt'))
         pt_files.sort()
         latest_file = pt_files[-1]
 
