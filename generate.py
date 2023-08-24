@@ -18,7 +18,6 @@ import torch
 import PIL.Image
 import dnnlib
 from torch_utils import distributed as dist
-from torchvision.utils import make_grid, save_image
 
 #----------------------------------------------------------------------------
 # Proposed EDM sampler (Algorithm 2).
@@ -235,8 +234,7 @@ def parse_int_list(s):
 @click.option('--disc', 'discretization',  help='Ablate time step discretization {t_i}', metavar='vp|ve|iddpm|edm', type=click.Choice(['vp', 've', 'iddpm', 'edm']))
 @click.option('--schedule',                help='Ablate noise schedule sigma(t)', metavar='vp|ve|linear',           type=click.Choice(['vp', 've', 'linear']))
 @click.option('--scaling',                 help='Ablate signal scaling s(t)', metavar='vp|none',                    type=click.Choice(['vp', 'none']))
-
-@click.option('--my_seed',                 help='predefined seed', metavar='PATH',                                  type=str)
+@click.option('--seed_path',               help='seed path', metavar='PATH',                                        type=str, default='None')
 
 def main(network_pkl, outdir, subdirs, seeds, class_idx, max_batch_size, device=torch.device('cuda'), **sampler_kwargs):
     """Generate random images using the techniques described in the paper
@@ -282,16 +280,11 @@ def main(network_pkl, outdir, subdirs, seeds, class_idx, max_batch_size, device=
 
         # Pick latents and labels.
         rnd = StackedRandomGenerator(device, batch_seeds)
-
-        if sampler_kwargs['my_seed'] is not None:
-            latents = torch.load(sampler_kwargs['my_seed']).cuda()
-            print('using predefined seed')
-        else:
+        if sampler_kwargs['seed_path'] is "None":
             latents = rnd.randn([batch_size, net.img_channels, net.img_resolution, net.img_resolution], device=device)
-            print('no seed found')
+        else:
+            latends = torch.load(sampler_kwargs['seed_path'])
             
-        sampler_kwargs.pop('my_seed')
-
         class_labels = None
         if net.label_dim:
             class_labels = torch.eye(net.label_dim, device=device)[rnd.randint(net.label_dim, size=[batch_size], device=device)]
@@ -304,10 +297,6 @@ def main(network_pkl, outdir, subdirs, seeds, class_idx, max_batch_size, device=
         have_ablation_kwargs = any(x in sampler_kwargs for x in ['solver', 'discretization', 'schedule', 'scaling'])
         sampler_fn = ablation_sampler if have_ablation_kwargs else edm_sampler
         images = sampler_fn(net, latents, class_labels, randn_like=rnd.randn_like, **sampler_kwargs)
-        
-        grid_dir = os.path.join(outdir, 'grid.png')
-        grid = make_grid((images+1)/2, nrow=8)
-        save_image(grid, grid_dir)
 
         # Save images.
         images_np = (images * 127.5 + 128).clip(0, 255).to(torch.uint8).permute(0, 2, 3, 1).cpu().numpy()
